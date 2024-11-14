@@ -5,7 +5,7 @@ import io.github.venkat1701.yugaantar.dtos.auth.AuthRequestDTO;
 import io.github.venkat1701.yugaantar.dtos.auth.AuthResponseDTO;
 import io.github.venkat1701.yugaantar.dtos.users.UserDTO;
 import io.github.venkat1701.yugaantar.mappers.users.UserMapper;
-import io.github.venkat1701.yugaantar.services.auth.UserAuthServiceImplementation;
+import io.github.venkat1701.yugaantar.services.implementation.auth.UserAuthServiceImplementation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
