@@ -53,11 +53,15 @@ public class Payment {
 
     @NotBlank
     @Column(name = "payment_status")
-    private String paymentStatus;
+    @Enumerated(EnumType.STRING)
+    private PaymentStatus paymentStatus;
 
     @NotBlank
     @Column(name = "payment_method")
     private String paymentMethod;
+
+    @Column(name = "order_data", columnDefinition = "TEXT")
+    private String orderData;
 
     @NotBlank
     @Column(name = "transaction_id")
