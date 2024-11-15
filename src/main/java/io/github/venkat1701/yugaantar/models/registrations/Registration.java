@@ -1,6 +1,7 @@
 package io.github.venkat1701.yugaantar.models.registrations;
 
 import io.github.venkat1701.yugaantar.models.events.Event;
+import io.github.venkat1701.yugaantar.models.payments.Payment;
 import io.github.venkat1701.yugaantar.models.users.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -10,6 +11,7 @@ import lombok.ToString;
 import org.hibernate.proxy.HibernateProxy;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Positive;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -61,6 +63,15 @@ public class Registration {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    @Positive
+    @Column(name = "amount_paid")
+    private int amountPaid;
+
+    @OneToOne
+    @JoinColumn(name = "payment_id")
+    private Payment payment;
+
 
     /**
      * Compares this Registration object to another object for equality.
