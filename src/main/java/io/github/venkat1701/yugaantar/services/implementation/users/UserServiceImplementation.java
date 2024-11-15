@@ -1,17 +1,16 @@
-package io.github.venkat1701.yugaantar.services.users;
+package io.github.venkat1701.yugaantar.services.implementation.users;
 
-import io.github.venkat1701.yugaantar.commons.services.GenericPersistenceService;
 import io.github.venkat1701.yugaantar.dtos.users.UserDTO;
 import io.github.venkat1701.yugaantar.mappers.users.UserMapper;
 import io.github.venkat1701.yugaantar.models.users.User;
 import io.github.venkat1701.yugaantar.repositories.users.UserRepository;
+import io.github.venkat1701.yugaantar.services.core.user.UserService;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
-import java.util.List;
 
 @Service
-public class UserServiceImplementation extends GenericPersistenceService<User, Long> {
+public class UserServiceImplementation extends UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
 
@@ -28,18 +27,5 @@ public class UserServiceImplementation extends GenericPersistenceService<User, L
             User savedUser = userRepository.save(updatedUser);
             return userMapper.toDto(savedUser);
         });
-    }
-
-
-    public boolean deleteUser(Long id) {
-        return super.delete(id);
-    }
-
-    public List<User> getAllUsers() {
-        return super.getAll();
-    }
-
-    public Optional<User> getUserById(Long id) {
-        return super.getById(id);
     }
 }

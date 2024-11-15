@@ -18,13 +18,13 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public abstract class GenericController<T, D, ID> {
-    private static final Logger logger = LoggerFactory.getLogger(GenericController.class);
+public abstract class GenericCrudController<T, D, ID> {
+    private static final Logger logger = LoggerFactory.getLogger(GenericCrudController.class);
 
     private final GenericPersistenceService<T, ID> service;
     private final GenericMapper<T, D> dtoConverter;
 
-    public GenericController(GenericPersistenceService<T, ID> service, GenericMapper<T, D> dtoConverter) {
+    public GenericCrudController(GenericPersistenceService<T, ID> service, GenericMapper<T, D> dtoConverter) {
         this.service = service;
         this.dtoConverter = dtoConverter;
     }

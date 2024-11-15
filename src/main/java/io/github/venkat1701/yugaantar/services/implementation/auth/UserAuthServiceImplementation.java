@@ -1,4 +1,4 @@
-package io.github.venkat1701.yugaantar.services.auth;
+package io.github.venkat1701.yugaantar.services.implementation.auth;
 
 import io.github.venkat1701.yugaantar.commons.services.GenericPersistenceService;
 import io.github.venkat1701.yugaantar.dtos.auth.AuthRequestDTO;
