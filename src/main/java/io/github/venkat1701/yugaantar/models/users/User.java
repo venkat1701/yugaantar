@@ -51,8 +51,9 @@ public class User {
     @ToString.Exclude
     private Set<Registration> registrations = new HashSet<>();
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany
     @ToString.Exclude
+    @JoinColumn(name="payment_id")
     private Set<Payment> payments = new HashSet<>();
 
 }

@@ -3,6 +3,7 @@ package io.github.venkat1701.yugaantar.services.implementation.payments;
 import com.razorpay.Invoice;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import io.github.venkat1701.yugaantar.exceptions.payments.PaymentFailedException;
 import io.github.venkat1701.yugaantar.models.events.Event;
 import io.github.venkat1701.yugaantar.models.payments.Payment;
 import io.github.venkat1701.yugaantar.models.payments.PaymentStatus;
@@ -25,8 +26,8 @@ public class PaymentServiceImplementation {
 
     public PaymentServiceImplementation(
             PaymentRepository paymentRepository,
-            @Value("rzp_test_mO6pZ6vjZARMvO") String razorpayKeyId,
-            @Value("KQ8twelhoCLkFbT8pwKaDGai") String razorpayKeySecret
+            @Value("${razorpay.api.key}") String razorpayKeyId,
+            @Value("${razorpay.api.secret}") String razorpayKeySecret
     ) throws RazorpayException {
         this.razorpayClient = new RazorpayClient(razorpayKeyId, razorpayKeySecret);
         this.paymentRepository = paymentRepository;
@@ -106,17 +107,14 @@ public class PaymentServiceImplementation {
     }
 
     @Transactional
-    public Payment verifyAndUpdatePayment(String paymentId, String razorpaySignature) {
+    public Payment verifyAndUpdatePayment(String transactionId, String razorpaySignature) {
         try {
-            // Fetch payment from our database
-            Payment payment = findByTransactionId(paymentId)
-                    .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
+            Payment payment = findByTransactionId(transactionId)
+                    .orElseThrow(() -> new PaymentFailedException("Payment not found"));
 
-            // Fetch payment from Razorpay to verify status
-            Invoice invoice = razorpayClient.invoices.fetch(paymentId);
+            Invoice invoice = razorpayClient.invoices.fetch(transactionId);
             String status = invoice.get("status");
 
-            // Update payment status based on Razorpay response
             PaymentStatus newStatus = switch (status.toLowerCase()) {
                 case "paid" -> PaymentStatus.SUCCESS;
                 case "expired" -> PaymentStatus.FAILURE;
@@ -124,7 +122,7 @@ public class PaymentServiceImplementation {
             };
 
             return updatePaymentStatus(payment, newStatus);
-        } catch (RazorpayException e) {
+        } catch (RazorpayException | PaymentFailedException e) {
             throw new RuntimeException("Payment verification failed: " + e.getMessage(), e);
         }
     }

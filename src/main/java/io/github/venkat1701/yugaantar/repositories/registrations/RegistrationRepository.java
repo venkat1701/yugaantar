@@ -16,31 +16,24 @@ import java.util.Optional;
 @Repository
 public interface RegistrationRepository extends JpaRepository<Registration, Long> {
 
-    // User related queries
     List<Registration> findByUser(User user);
     List<Registration> findByUserOrderByCreatedAtDesc(User user);
     Optional<Registration> findByUserAndEvent(User user, Event event);
     boolean existsByUserAndEvent(User user, Event event);
 
-    // Event related queries
     List<Registration> findByEvent(Event event);
     List<Registration> findByEventOrderByCreatedAtDesc(Event event);
 
-    // Status related queries
     List<Registration> findByRegistrationStatus(String status);
     List<Registration> findByRegistrationStatusAndEvent(String status, Event event);
     List<Registration> findByRegistrationStatusAndUser(String status, User user);
 
-    // Payment related queries
     Optional<Registration> findByPayment(Payment payment);
     List<Registration> findByAmountPaidGreaterThan(int amount);
     List<Registration> findByAmountPaidLessThan(int amount);
-
-    // Date related queries
     List<Registration> findByCreatedAtBetween(LocalDateTime startDate, LocalDateTime endDate);
     List<Registration> findByRegistrationDate(String registrationDate);
 
-    // Custom queries
     @Query("SELECT r FROM Registration r WHERE r.event = :event AND r.registrationStatus = 'CONFIRMED'")
     List<Registration> findConfirmedRegistrationsForEvent(@Param("event") Event event);
 
@@ -53,7 +46,6 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     @Query("SELECT DISTINCT r.registrationStatus FROM Registration r")
     List<String> findAllDistinctStatuses();
 
-    // Combined queries
     List<Registration> findByEventAndCreatedAtBetween(Event event, LocalDateTime startDate, LocalDateTime endDate);
     List<Registration> findByUserAndRegistrationStatusAndCreatedAtBetween(
             User user,
@@ -61,4 +53,34 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
             LocalDateTime startDate,
             LocalDateTime endDate
     );
+
+    @Query("SELECT r.user FROM Registration r " +
+            "WHERE r.event = :event " +
+            "AND r.registrationStatus = 'CONFIRMED' " +
+            "AND r.payment IS NOT NULL " +
+            "AND r.amountPaid > 0")
+    List<User> findSuccessfullyRegisteredUsers(@Param("event") Event event);
+
+    @Query("SELECT r FROM Registration r " +
+            "WHERE r.event = :event " +
+            "AND r.registrationStatus = 'CONFIRMED' " +
+            "AND r.payment IS NOT NULL " +
+            "AND r.amountPaid > 0 " +
+            "ORDER BY r.createdAt DESC")
+    List<Registration> findSuccessfulRegistrations(@Param("event") Event event);
+
+    @Query("SELECT COUNT(r) > 0 FROM Registration r " +
+            "WHERE r.event = :event " +
+            "AND r.user = :user " +
+            "AND r.registrationStatus = 'CONFIRMED' " +
+            "AND r.payment IS NOT NULL " +
+            "AND r.amountPaid > 0")
+    boolean isUserSuccessfullyRegistered(@Param("event") Event event, @Param("user") User user);
+
+    @Query("SELECT COUNT(r) FROM Registration r " +
+            "WHERE r.event = :event " +
+            "AND r.registrationStatus = 'CONFIRMED' " +
+            "AND r.payment IS NOT NULL " +
+            "AND r.amountPaid > 0")
+    long countSuccessfulRegistrations(@Param("event") Event event);
 }

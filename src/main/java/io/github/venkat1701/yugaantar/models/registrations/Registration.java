@@ -73,12 +73,6 @@ public class Registration {
     private Payment payment;
 
 
-    /**
-     * Compares this Registration object to another object for equality.
-     *
-     * @param o the object to be compared
-     * @return true if this Registration is the same as the other object, false otherwise
-     */
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
@@ -92,11 +86,6 @@ public class Registration {
         return getId() != null && Objects.equals(getId(), that.getId());
     }
 
-    /**
-     * Returns a hash code value for this Registration object.
-     *
-     * @return a hash code value for this Registration
-     */
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ?
