@@ -1,8 +1,12 @@
-package io.github.venkat1701.yugaantar.controllers;
+package io.github.venkat1701.yugaantar.controllers.registrations;
 
 import io.github.venkat1701.yugaantar.commons.controllers.GenericCrudController;
+import io.github.venkat1701.yugaantar.dtos.payments.PaymentDTO;
 import io.github.venkat1701.yugaantar.dtos.registrations.RegistrationDTO;
+import io.github.venkat1701.yugaantar.exceptions.payments.PaymentFailedException;
+import io.github.venkat1701.yugaantar.exceptions.registrations.RegistrationException;
 import io.github.venkat1701.yugaantar.mappers.registrations.RegistrationMapper;
+import io.github.venkat1701.yugaantar.models.payments.PaymentStatus;
 import io.github.venkat1701.yugaantar.models.registrations.Registration;
 import io.github.venkat1701.yugaantar.services.implementation.payments.PaymentServiceImplementation;
 import io.github.venkat1701.yugaantar.services.implementation.registrations.RegistrationServiceImplementation;
@@ -26,32 +30,32 @@ public class RegistrationController extends GenericCrudController<Registration, 
     private final RegistrationServiceImplementation registrationService;
     private final PaymentServiceImplementation paymentService;
 
-    public RegistrationController(
-            RegistrationServiceImplementation registrationService,
-            RegistrationMapper registrationMapper,
-            PaymentServiceImplementation paymentService) {
+    public RegistrationController(RegistrationServiceImplementation registrationService, RegistrationMapper registrationMapper, PaymentServiceImplementation paymentService) {
         super(registrationService, registrationMapper);
         this.registrationService = registrationService;
         this.paymentService = paymentService;
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, String>> registerForEvent(@Valid @RequestBody RegistrationDTO registrationDTO) {
+    public ResponseEntity<PaymentDTO> registerForEvent(@Valid @RequestBody RegistrationDTO registrationDTO) {
         try {
-            String paymentLink = registrationService.registerUserForEvent(registrationDTO);
-
+            String transID = registrationService.registerUserForEvent(registrationDTO);
+            String paymentLink = paymentService.getPaymentLink(transID);
             Map<String, String> response = new HashMap<>();
             response.put("status", "success");
             response.put("message", "Registration initiated successfully");
             response.put("paymentLink", paymentLink);
 
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
+            PaymentDTO paymentDTO = new PaymentDTO(
+                    "SUCCESS",
+                    "Registration Initiated Successfully",
+                    paymentLink
+            );
+
+            return ResponseEntity.ok(paymentDTO);
+        } catch (RegistrationException e) {
             log.error("Invalid registration request: {}", e.getMessage());
             return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (IllegalStateException e) {
-            log.error("Registration state error: {}", e.getMessage());
-            return createErrorResponse(HttpStatus.CONFLICT, e.getMessage());
         } catch (Exception e) {
             log.error("Error during registration", e);
             return createErrorResponse(
@@ -61,45 +65,13 @@ public class RegistrationController extends GenericCrudController<Registration, 
         }
     }
 
-    @PostMapping("/webhook")
-    public ResponseEntity<Map<String, String>> handlePaymentWebhook(
-            @RequestHeader("X-Razorpay-Signature") String razorpaySignature,
-            @NotBlank @RequestParam("payment_id") String paymentId) {
-        try {
-            Registration registration = registrationService.handlePaymentSuccess(paymentId);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("message", "Payment processed successfully");
-            response.put("registrationId", registration.getId().toString());
-
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid payment webhook data: {}", e.getMessage());
-            return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
-        } catch (Exception e) {
-            log.error("Error processing payment webhook", e);
-            return createErrorResponse(
-                    HttpStatus.INTERNAL_SERVER_ERROR,
-                    "Failed to process payment webhook"
-            );
-        }
-    }
-
     @GetMapping("/verify-payment/{paymentId}")
-    public ResponseEntity<Map<String, String>> verifyPayment(@PathVariable String paymentId) {
+    public ResponseEntity<PaymentDTO> verifyPayment(@PathVariable String paymentId) {
         try {
-            paymentService.verifyAndUpdatePayment(paymentId, null);
+            var payment = paymentService.verifyAndUpdatePayment(paymentId, null);
             String paymentLink = paymentService.getPaymentLink(paymentId);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("paymentLink", paymentLink);
-
-            return ResponseEntity.ok(response);
-        } catch (IllegalArgumentException e) {
-            log.error("Invalid payment verification request: {}", e.getMessage());
-            return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
+            this.registrationService.updateUserRole(payment);
+            return ResponseEntity.ok(new PaymentDTO("SUCCESS", "Verify Payment", paymentLink));
         } catch (Exception e) {
             log.error("Error during payment verification", e);
             return createErrorResponse(
@@ -110,17 +82,12 @@ public class RegistrationController extends GenericCrudController<Registration, 
     }
 
     @GetMapping("/payment-status/{registrationId}")
-    public ResponseEntity<Map<String, String>> getPaymentStatus(@PathVariable Long registrationId) {
+    public ResponseEntity<PaymentDTO> getPaymentStatus(@PathVariable Long registrationId) {
         try {
             Registration registration = registrationService.findById(registrationId)
                     .orElseThrow(() -> new IllegalArgumentException("Registration not found"));
 
-            Map<String, String> response = new HashMap<>();
-            response.put("status", "success");
-            response.put("paymentStatus", registration.getPayment().getPaymentStatus().toString());
-            response.put("transactionId", registration.getPayment().getTransactionId());
-
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(new PaymentDTO("SUCCESS", registration.getPayment().getPaymentStatus().toString(), registration.getPayment().getTransactionId()));
         } catch (IllegalArgumentException e) {
             log.error("Invalid registration ID: {}", e.getMessage());
             return createErrorResponse(HttpStatus.BAD_REQUEST, e.getMessage());
@@ -133,10 +100,12 @@ public class RegistrationController extends GenericCrudController<Registration, 
         }
     }
 
-    private ResponseEntity<Map<String, String>> createErrorResponse(HttpStatus status, String message) {
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "error");
-        response.put("message", message);
+    private ResponseEntity<PaymentDTO> createErrorResponse(HttpStatus status, String message) {
+        var response = new PaymentDTO(
+          "ERROR",
+                message,
+                "https://"
+        );
         return ResponseEntity.status(status).body(response);
     }
 }

@@ -21,18 +21,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
-/**
- * Represents an event in the application.
- * <p>
- * This entity encapsulates all the necessary details related to an event,
- * including its name, description, date, location, and ticket pricing.
- * The Event entity is linked to registrations and sponsors, and it may be associated with a venue.
- * </p>
- *
- * <p>
- * Author: Venkat
- * </p>
- */
 @Entity
 @Table(name = "events")
 @Getter
@@ -104,12 +92,6 @@ public class Event {
     @JoinColumn(name = "venue_id")
     private Venue venue;
 
-    /**
-     * Compares this Event object to another object for equality.
-     *
-     * @param o the object to be compared
-     * @return true if this Event is the same as the other object, false otherwise
-     */
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
@@ -122,12 +104,6 @@ public class Event {
         Event event = (Event) o;
         return getId() != null && Objects.equals(getId(), event.getId());
     }
-
-    /**
-     * Returns a hash code value for this Event object.
-     *
-     * @return a hash code value for this Event
-     */
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ?
