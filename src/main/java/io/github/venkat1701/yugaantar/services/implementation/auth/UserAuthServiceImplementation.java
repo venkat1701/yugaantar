@@ -12,6 +12,7 @@ import io.github.venkat1701.yugaantar.models.users.UserProfile;
 import io.github.venkat1701.yugaantar.repositories.roles.RoleRepository;
 import io.github.venkat1701.yugaantar.repositories.users.UserRepository;
 import io.github.venkat1701.yugaantar.security.jwt.JwtProvider;
+import io.github.venkat1701.yugaantar.utilities.annotations.RequiresUserCrudPermission;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -91,8 +92,6 @@ public class UserAuthServiceImplementation extends GenericPersistenceService<Use
         String jwt = jwtProvider.generateToken(authentication, user.getId());
         return new AuthResponseDTO(jwt, "User Login");
     }
-
-
 
     private Authentication authenticate(String email, String password) {
         UserDetails userDetails = this.loadUserByUsername(email);
