@@ -1,7 +1,6 @@
 package io.github.venkat1701.yugaantar.commons.services;
 
-import io.github.venkat1701.yugaantar.utilities.annotations.RequiresEventCreatePermission;
-import io.github.venkat1701.yugaantar.utilities.annotations.RequiresUserCrudPermission;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;

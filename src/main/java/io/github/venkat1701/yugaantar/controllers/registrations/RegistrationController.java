@@ -10,6 +10,7 @@ import io.github.venkat1701.yugaantar.models.payments.PaymentStatus;
 import io.github.venkat1701.yugaantar.models.registrations.Registration;
 import io.github.venkat1701.yugaantar.services.implementation.payments.PaymentServiceImplementation;
 import io.github.venkat1701.yugaantar.services.implementation.registrations.RegistrationServiceImplementation;
+import io.github.venkat1701.yugaantar.utilities.annotations.RegistrationSecurity;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,7 +26,7 @@ import java.util.Map;
 @Validated
 @RestController
 @RequestMapping("/api/v1/registerevent")
-public class RegistrationController extends GenericCrudController<Registration, RegistrationDTO, Long> {
+public class RegistrationController extends GenericCrudController<Registration, RegistrationDTO, Long, RegistrationSecurity> {
 
     private final RegistrationServiceImplementation registrationService;
     private final PaymentServiceImplementation paymentService;

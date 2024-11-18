@@ -1,5 +1,6 @@
 package io.github.venkat1701.yugaantar.services.implementation.auth;
 
+import io.github.venkat1701.yugaantar.commons.security.GenericSecurityEvaluator;
 import io.github.venkat1701.yugaantar.commons.services.GenericPersistenceService;
 import io.github.venkat1701.yugaantar.dtos.auth.AuthRequestDTO;
 import io.github.venkat1701.yugaantar.dtos.auth.AuthResponseDTO;
@@ -12,7 +13,7 @@ import io.github.venkat1701.yugaantar.models.users.UserProfile;
 import io.github.venkat1701.yugaantar.repositories.roles.RoleRepository;
 import io.github.venkat1701.yugaantar.repositories.users.UserRepository;
 import io.github.venkat1701.yugaantar.security.jwt.JwtProvider;
-import io.github.venkat1701.yugaantar.utilities.annotations.RequiresUserCrudPermission;
+import io.github.venkat1701.yugaantar.utilities.annotations.UserSecurity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -27,15 +28,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class UserAuthServiceImplementation extends GenericPersistenceService<User, Long> {
+public class UserAuthServiceImplementation extends GenericPersistenceService<User, Long, UserSecurity> {
     private final UserRepository userRepository;
     private final JwtProvider jwtProvider;
     private final PasswordEncoder passwordEncoder;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
 
-    public UserAuthServiceImplementation(UserRepository userRepository, JwtProvider jwtProvider, PasswordEncoder passwordEncoder, RoleRepository roleRepository, UserMapper userMapper) {
-        super(userRepository, userMapper);
+
+    public UserAuthServiceImplementation(UserRepository userRepository, JwtProvider jwtProvider, PasswordEncoder passwordEncoder, RoleRepository roleRepository, UserMapper userMapper, GenericSecurityEvaluator securityEvaluator) {
+        super(userRepository, userMapper, UserSecurity.class, securityEvaluator);
         this.userRepository = userRepository;
         this.jwtProvider = jwtProvider;
         this.passwordEncoder = passwordEncoder;
