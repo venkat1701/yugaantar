@@ -1,5 +1,6 @@
 package io.github.venkat1701.yugaantar.services.implementation.registrations;
 
+import io.github.venkat1701.yugaantar.commons.security.GenericSecurityEvaluator;
 import io.github.venkat1701.yugaantar.commons.services.GenericPersistenceService;
 import io.github.venkat1701.yugaantar.dtos.registrations.RegistrationDTO;
 import io.github.venkat1701.yugaantar.exceptions.payments.PaymentFailedException;
@@ -17,6 +18,7 @@ import io.github.venkat1701.yugaantar.repositories.registrations.RegistrationRep
 import io.github.venkat1701.yugaantar.repositories.roles.RoleRepository;
 import io.github.venkat1701.yugaantar.repositories.users.UserRepository;
 import io.github.venkat1701.yugaantar.services.implementation.payments.PaymentServiceImplementation;
+import io.github.venkat1701.yugaantar.utilities.annotations.RegistrationSecurity;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +28,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public class RegistrationServiceImplementation extends GenericPersistenceService<Registration, Long> {
+public class RegistrationServiceImplementation extends GenericPersistenceService<Registration, Long, RegistrationSecurity> {
 
     private final RegistrationRepository registrationRepository;
     private final PaymentServiceImplementation paymentServiceImplementation;
@@ -40,8 +42,10 @@ public class RegistrationServiceImplementation extends GenericPersistenceService
                                              EventRepository eventRepository,
                                              UserRepository userRepository,
                                              RoleRepository roleRepository,
-                                             RegistrationMapper registrationMapper) {
-        super(registrationRepository, registrationMapper);
+                                             RegistrationMapper registrationMapper,
+                                             GenericSecurityEvaluator evaluator
+                                             ) {
+        super(registrationRepository, registrationMapper, RegistrationSecurity.class,evaluator);
         this.registrationRepository = registrationRepository;
         this.paymentServiceImplementation = paymentServiceImplementation;
         this.eventRepository = eventRepository;

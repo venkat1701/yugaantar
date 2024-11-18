@@ -28,6 +28,8 @@ public class SecurityConfiguration {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(management -> management.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Stateless session management
                 .authorizeHttpRequests(requests -> {
+                    requests.requestMatchers("/signin").permitAll();
+                    requests.requestMatchers("/signup").permitAll();
                     requests.anyRequest().permitAll();
                 })
                 .addFilterBefore(new JwtValidator(), UsernamePasswordAuthenticationFilter.class) // Add JWT validation filter
@@ -35,6 +37,8 @@ public class SecurityConfiguration {
                 .formLogin(Customizer.withDefaults()) // Enable form login
                 .build();
     }
+
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
