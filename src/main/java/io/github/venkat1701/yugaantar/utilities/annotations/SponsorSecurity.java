@@ -4,14 +4,14 @@ import io.github.venkat1701.yugaantar.commons.security.SecurityPermission;
 
 
 public enum SponsorSecurity implements SecurityPermission {
-        VIEW_ALL("getAll", new String[]{"ADMIN", "MANAGER", "SPONSOR_COORDINATOR"}),
-        VIEW("getById", new String[]{"ADMIN", "MANAGER", "SPONSOR_COORDINATOR", "USER"}),
-        CREATE("save", new String[]{"ADMIN", "MANAGER", "SPONSOR_COORDINATOR"}),
-        UPDATE("update", new String[]{"ADMIN", "MANAGER", "SPONSOR_COORDINATOR"}),
+        VIEW_ALL("getAll", new String[]{"ADMIN", "MANAGER", "SUPERADMIN"}),
+        VIEW("getById", new String[]{"ADMIN", "MANAGER", "SUPERADMIN", "GUEST", "PARTICIPANT"}),
+        CREATE("save", new String[]{"ADMIN", "MANAGER", "SUPERADMIN"}),
+        UPDATE("update", new String[]{"ADMIN", "MANAGER", "SUPERADMIN"}),
         DELETE("delete", new String[]{"ADMIN", "MANAGER"}),
         APPROVE("approve", new String[]{"ADMIN", "MANAGER"}),
         REJECT("reject", new String[]{"ADMIN", "MANAGER"}),
-        VIEW_PENDING("getPending", new String[]{"ADMIN", "MANAGER", "SPONSOR_COORDINATOR"});
+        VIEW_PENDING("getPending", new String[]{"SUPERADMIN", "MANAGER", "SUPERADMIN"});
 
         private final String methodName;
         private final String[] allowedRoles;

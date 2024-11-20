@@ -5,11 +5,11 @@ import io.github.venkat1701.yugaantar.commons.security.SecurityPermission;
 
 public enum EventSecurity implements SecurityPermission {
 
-    VIEW_ALL("getAll", new String[]{ "ADMIN", "MANAGER"}),
-    VIEW("getById", new String[]{"ADMIN", "MANAGER", "USER"}),
-    CREATE("save", new String[]{"ADMIN", "MANAGER"}),
-    UPDATE("update", new String[]{"ADMIN", "MANAGER"}),
-    DELETE("delete", new String[]{"ADMIN"});
+    VIEW_ALL("getAll", new String[]{"GUEST", "PARTICIPANT", "MANAGER","ADMIN", "SUPERADMIN"}),
+    VIEW("getById", new String[]{"GUEST", "PARTICIPANT", "MANAGER","ADMIN", "SUPERADMIN"}),
+    CREATE("save", new String[]{"SUPERADMIN","ADMIN", "MANAGER"}),
+    UPDATE("update", new String[]{"SUPERADMIN","ADMIN", "MANAGER"}),
+    DELETE("delete", new String[]{"SUPERADMIN","ADMIN"});
 
     private final String methodName;
     private final String[] allowedRoles;
