@@ -23,4 +23,5 @@ public class UserControllerImplementation extends GenericCrudController<User, Us
         this.userService = service;
         this.userMapper = mapper;
     }
+
 }

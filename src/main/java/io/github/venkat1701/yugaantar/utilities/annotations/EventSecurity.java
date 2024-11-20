@@ -5,7 +5,7 @@ import io.github.venkat1701.yugaantar.commons.security.SecurityPermission;
 
 public enum EventSecurity implements SecurityPermission {
 
-    VIEW_ALL("getAll", new String[]{"ADMIN", "MANAGER"}),
+    VIEW_ALL("getAll", new String[]{ "ADMIN", "MANAGER"}),
     VIEW("getById", new String[]{"ADMIN", "MANAGER", "USER"}),
     CREATE("save", new String[]{"ADMIN", "MANAGER"}),
     UPDATE("update", new String[]{"ADMIN", "MANAGER"}),
