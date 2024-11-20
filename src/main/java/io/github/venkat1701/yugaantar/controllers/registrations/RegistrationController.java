@@ -109,4 +109,6 @@ public class RegistrationController extends GenericCrudController<Registration, 
         );
         return ResponseEntity.status(status).body(response);
     }
+
+
 }

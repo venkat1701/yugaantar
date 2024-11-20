@@ -4,12 +4,15 @@ import io.github.venkat1701.yugaantar.commons.dtoconverters.GenericMapper;
 import io.github.venkat1701.yugaantar.commons.security.GenericSecurityEvaluator;
 import io.github.venkat1701.yugaantar.commons.security.SecuredResource;
 import io.github.venkat1701.yugaantar.commons.security.SecurityPermission;
-import io.github.venkat1701.yugaantar.utilities.annotations.UserSecurity;
+import io.github.venkat1701.yugaantar.utilities.annotations.DefaultSecurityPermissionResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.nio.file.AccessDeniedException;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,55 +20,106 @@ public class GenericPersistenceService<T, ID, SECURITY extends Enum<SECURITY> & 
     private final JpaRepository<T, ID> repository;
     private final GenericMapper<T, ?> mapper;
     private final Class<SECURITY> securityClass;
-    private final GenericSecurityEvaluator evaluator;
-    public GenericPersistenceService(JpaRepository<T, ID> repository, GenericMapper<T, ?> mapper, Class<SECURITY> securityClass, GenericSecurityEvaluator evaluator) {
+
+    @Autowired
+    private final GenericSecurityEvaluator securityEvaluator;
+
+    @Autowired
+    private DefaultSecurityPermissionResolver permissionResolver;
+
+    public GenericPersistenceService(
+            JpaRepository<T, ID> repository,
+            GenericMapper<T, ?> mapper,
+            Class<SECURITY> securityClass,
+            GenericSecurityEvaluator securityEvaluator
+    ) {
         this.securityClass = securityClass;
         this.repository = repository;
         this.mapper = mapper;
-        this.evaluator = evaluator;
+        this.securityEvaluator = securityEvaluator;
     }
 
-    public boolean checkPermission(Authentication authentication, String permissionName) throws AccessDeniedException {
-        try{
-            SECURITY permission = Enum.valueOf(securityClass, permissionName);
-            boolean hasPermission = this.evaluator.hasPermission(authentication, this, permission);
-
-            if(!hasPermission) {
-                throw new AccessDeniedException("Access is Denied");
-            }
-            return true;
-        } catch(IllegalArgumentException e) {
-            throw new AccessDeniedException("Invalid permission: "+permissionName);
+    /**
+     * Retrieves current authentication from SecurityContextHolder
+     * @return Current Authentication object
+     * @throws AccessDeniedException if no authentication is available
+     */
+    private Authentication getCurrentAuthentication() throws AccessDeniedException {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new AccessDeniedException("No valid authentication found");
         }
+        return authentication;
     }
 
-    @SecuredResource(permission = "VIEW_ALL", securityClass = SecurityPermission.class)
-    public List<T> getAll() {
+    /**
+     * Retrieves all entities with VIEW_ALL permission
+     * @return List of all entities
+     * @throws AccessDeniedException If user lacks VIEW_ALL permission
+     */
+    @Transactional(readOnly = true)
+    @PreAuthorize("@genericSecurityEvaluator.hasPermission(authentication, 'getAll')")
+    public List<T> getAll() throws AccessDeniedException {
         return repository.findAll();
     }
 
-    @SecuredResource(permission = "VIEW_ALL", securityClass = SecurityPermission.class)
-    public List<? extends Object> getAllDto() {
+    /**
+     * Retrieves all DTOs with VIEW_ALL permission
+     * @return List of all DTOs
+     * @throws AccessDeniedException If user lacks VIEW_ALL permission
+     */
+    @Transactional(readOnly = true)
+    @PreAuthorize("@genericSecurityEvaluator.hasPermission(authentication, 'getAll')")
+    public List<?> getAllDto() throws AccessDeniedException {
         return mapper.toDtoList(repository.findAll());
     }
 
-    @SecuredResource(permission = "VIEW", securityClass = SecurityPermission.class)
-    public Optional<T> getById(ID id) {
+    /**
+     * Retrieves an entity by ID with VIEW permission
+     * @param id Entity ID
+     * @return Optional of entity
+     * @throws AccessDeniedException If user lacks VIEW permission
+     */
+    @Transactional(readOnly = true)
+    @PreAuthorize("@genericSecurityEvaluator.hasPermission(authentication, #root, @defaultSecurityPermissionResolver.resolve('VIEW'))")
+    public Optional<T> getById(ID id) throws AccessDeniedException {
         return repository.findById(id);
     }
 
-    @SecuredResource(permission="VIEW", securityClass = SecurityPermission.class)
-    public Optional<? extends Object> getByIdDto(ID id) {
+    /**
+     * Retrieves a DTO by ID with VIEW permission
+     * @param id Entity ID
+     * @return Optional of DTO
+     * @throws AccessDeniedException If user lacks VIEW permission
+     */
+    @Transactional(readOnly = true)
+    @PreAuthorize("@genericSecurityEvaluator.hasPermission(authentication, #root, @defaultSecurityPermissionResolver.resolve('VIEW'))")
+    public Optional<?> getByIdDto(ID id) throws AccessDeniedException {
         return repository.findById(id).map(mapper::toDto);
     }
 
-    @SecuredResource(permission="CREATE", securityClass = SecurityPermission.class)
-    public T save(T entity) {
+    /**
+     * Saves a new entity with CREATE permission
+     * @param entity Entity to save
+     * @return Saved entity
+     * @throws AccessDeniedException If user lacks CREATE permission
+     */
+    @Transactional
+    @PreAuthorize("@genericSecurityEvaluator.hasPermission(authentication, #root, @defaultSecurityPermissionResolver.resolve('CREATE'))")
+    public T save(T entity) throws AccessDeniedException {
         return repository.save(entity);
     }
 
-    @SecuredResource(permission="UPDATE", securityClass = SecurityPermission.class)
-    public Optional<T> update(ID id, T entity) {
+    /**
+     * Updates an existing entity with UPDATE permission
+     * @param id Entity ID
+     * @param entity Updated entity
+     * @return Optional of updated entity
+     * @throws AccessDeniedException If user lacks UPDATE permission
+     */
+    @Transactional
+    @PreAuthorize("@genericSecurityEvaluator.hasPermission(authentication, #root, @defaultSecurityPermissionResolver.resolve('UPDATE'))")
+    public Optional<T> update(ID id, T entity) throws AccessDeniedException {
         return repository.findById(id)
                 .map(existing -> {
                     T updated = mapper.updateEntity(existing, entity);
@@ -73,8 +127,15 @@ public class GenericPersistenceService<T, ID, SECURITY extends Enum<SECURITY> & 
                 });
     }
 
-    @SecuredResource(permission="DELETE", securityClass = SecurityPermission.class)
-    public boolean delete(ID id) {
+    /**
+     * Deletes an entity with DELETE permission
+     * @param id Entity ID
+     * @return Boolean indicating successful deletion
+     * @throws AccessDeniedException If user lacks DELETE permission
+     */
+    @Transactional
+    @PreAuthorize("@genericSecurityEvaluator.hasPermission(authentication, #root, @defaultSecurityPermissionResolver.resolve('DELETE'))")
+    public boolean delete(ID id) throws AccessDeniedException {
         if (repository.existsById(id)) {
             repository.deleteById(id);
             return true;

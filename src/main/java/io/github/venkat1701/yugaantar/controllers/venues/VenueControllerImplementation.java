@@ -22,4 +22,5 @@ public class VenueControllerImplementation extends GenericCrudController<Venue, 
         this.venueService = venueService;
         this.venueMapper = mapper;
     }
+
 }

@@ -17,4 +17,6 @@ public class SponsorControllerImplementation extends GenericCrudController<Spons
     public SponsorControllerImplementation(GenericPersistenceService<Sponsor, Long, SponsorSecurity> service, GenericMapper<Sponsor, SponsorDTO> dtoConverter) {
         super(service, dtoConverter);
     }
+
+
 }

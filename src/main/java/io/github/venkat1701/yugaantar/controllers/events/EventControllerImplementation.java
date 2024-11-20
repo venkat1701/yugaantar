@@ -21,4 +21,5 @@ public class EventControllerImplementation extends GenericCrudController<Event, 
         this.eventService = service;
         this.mapper = dtoConverter;
     }
+
 }

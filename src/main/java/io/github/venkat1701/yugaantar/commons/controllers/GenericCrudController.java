@@ -34,7 +34,6 @@ public abstract class GenericCrudController<T, D, ID, S extends Enum<S> & Securi
     }
 
     @GetMapping
-    @SecuredResource(permission = "VIEW_ALL", securityClass = SecurityPermission.class)
     public ResponseEntity<List<D>> getAll(Authentication authentication) {
         logger.debug("Fetching all entities");
         try {
@@ -50,7 +49,6 @@ public abstract class GenericCrudController<T, D, ID, S extends Enum<S> & Securi
     }
 
     @GetMapping("/{id}")
-    @SecuredResource(permission = "VIEW", securityClass = SecurityPermission.class)
     public ResponseEntity<D> getById(@PathVariable ID id, Authentication authentication) {
         logger.debug("Fetching entity by ID: {}", id);
         try {
@@ -65,7 +63,6 @@ public abstract class GenericCrudController<T, D, ID, S extends Enum<S> & Securi
     }
 
     @PostMapping
-    @SecuredResource(permission = "CREATE", securityClass = SecurityPermission.class)
     public ResponseEntity<D> create(@Valid @RequestBody D dto, Authentication authentication) {
         logger.debug("Creating new entity from DTO: {}", dto);
         try {
@@ -80,7 +77,6 @@ public abstract class GenericCrudController<T, D, ID, S extends Enum<S> & Securi
     }
 
     @PutMapping("/{id}")
-    @SecuredResource(permission = "UPDATE", securityClass = SecurityPermission.class)
     public ResponseEntity<D> update(@PathVariable ID id, @Valid @RequestBody D dto, Authentication authentication) {
         logger.debug("Updating entity with ID: {} using DTO: {}", id, dto);
         try {
@@ -96,7 +92,6 @@ public abstract class GenericCrudController<T, D, ID, S extends Enum<S> & Securi
     }
 
     @DeleteMapping("/{id}")
-    @SecuredResource(permission = "DELETE", securityClass = SecurityPermission.class)
     public ResponseEntity<Void> delete(@PathVariable ID id, Authentication authentication) {
         logger.debug("Deleting entity with ID: {}", id);
         try {
