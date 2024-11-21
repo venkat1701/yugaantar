@@ -3,7 +3,7 @@ package io.github.venkat1701.yugaantar.utilities.annotations;
 import io.github.venkat1701.yugaantar.commons.security.SecurityPermission;
 
 public enum VenueSecurity implements SecurityPermission {
-    VIEW_ALL("getAll", new String[]{"ADMIN", "MANAGER", "EVENT_COORDINATOR"}),
+    VIEW_ALL("getAll", new String[]{"ADMIN", "MANAGER", "SUPERADMIN"}),
     VIEW("getById", new String[]{"ADMIN", "MANAGER", "EVENT_COORDINATOR", "USER"}),
     CREATE("save", new String[]{"ADMIN", "MANAGER"}),
     UPDATE("update", new String[]{"ADMIN", "MANAGER", "EVENT_COORDINATOR"}),

@@ -3,15 +3,11 @@ package io.github.venkat1701.yugaantar.utilities.annotations;
 import io.github.venkat1701.yugaantar.commons.security.SecurityPermission;
 
 public enum UserSecurity implements SecurityPermission {
-    VIEW_ALL("getAll", new String[]{"SUPERADMIN", "ADMIN"}),
-
-    VIEW("getById", new String[]{"SUPERADMIN", "ADMIN", "MANAGER", "PARTICIPANT"}),
-
-    CREATE("save", new String[]{"GUEST", "SUPERADMIN", "ADMIN"}),
-
-    UPDATE("update", new String[]{"SUPERADMIN", "ADMIN", "MANAGER"}),
-
-    DELETE("delete", new String[]{"SUPERADMIN", "ADMIN"});
+    VIEW_ALL("getAll", new String[]{"SUPERADMIN", "ADMIN", "GUEST", "PARTICIPANT", "MANAGER"}),
+    VIEW("getById", new String[]{"SUPERADMIN", "ADMIN", "MANAGER", "PARTICIPANT", "GUEST"}),
+    CREATE("save", new String[]{"GUEST", "SUPERADMIN", "ADMIN", "MANAGER"}),
+    UPDATE("update", new String[]{"GUEST", "SUPERADMIN", "ADMIN", "MANAGER"}),
+    DELETE("delete", new String[]{"SUPERADMIN", "ADMIN", "GUEST", "PARTICIPANT"});
 
     private final String methodName;
     private final String[] allowedRoles;
