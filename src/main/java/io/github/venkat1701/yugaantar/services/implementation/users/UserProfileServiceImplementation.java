@@ -19,4 +19,19 @@ public class UserProfileServiceImplementation extends GenericPersistenceService<
         this.userProfileRepository = repository;
         this.userProfileMapper = userProfileMapper;
     }
+
+    public void associateQrCode(Long userId, byte[] qrCode) {
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User profile not found for user ID: " + userId));
+
+        profile.setQrCode(qrCode); // Set the QR code
+        userProfileRepository.save(profile);
+    }
+
+    public byte[] getQrCode(Long userId) {
+        UserProfile profile = userProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new RuntimeException("User profile not found for user ID: " + userId));
+
+        return profile.getQrCode();
+    }
 }
