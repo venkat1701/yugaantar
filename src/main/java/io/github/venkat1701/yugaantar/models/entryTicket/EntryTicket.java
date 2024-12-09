@@ -10,10 +10,11 @@ import java.util.UUID;
 @Entity
 public class EntryTicket {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID entryId;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
     private String transactionId;
     private PaymentStatus paymentStatus; // PENDING, PAID, LOGGED-IN
