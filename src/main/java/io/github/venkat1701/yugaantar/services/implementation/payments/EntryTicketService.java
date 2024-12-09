@@ -30,10 +30,9 @@ public class EntryTicketService extends GenericPersistenceService<EntryTicket, U
             EntryTicketRepository repository,
             PaymentServiceImplementation paymentService,
             UserRepository userRepository,
-            GenericMapper<EntryTicket, ?> mapper,
             GenericSecurityEvaluator securityEvaluator
     ) {
-        super(repository, mapper, EntryTicketSecurity.class, securityEvaluator);
+        super(repository, null, EntryTicketSecurity.class, securityEvaluator); // Pass null for mapper
         this.paymentService = paymentService;
         this.userRepository = userRepository;
         this.repository = repository;
