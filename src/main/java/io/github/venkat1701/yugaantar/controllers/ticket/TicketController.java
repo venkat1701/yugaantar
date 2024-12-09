@@ -48,9 +48,8 @@ public class TicketController {
         // Create and initiate payment
         EntryTicket ticket = entryTicketService.createAndInitiatePayment(userId, event, amount);
 
-        // Fetch the payment link from PaymentGateway if needed
-        // Assuming PaymentGateway provides a method to get payment link based on transactionId
-        String paymentLink = "https://rzp.io/l/mockpaymentlink"; // Replace with actual payment link retrieval
+        // Fetch the actual payment link from Razorpay
+        String paymentLink = entryTicketService.getPaymentLink(ticket.getTransactionId());  // Get actual link from Razorpay
 
         return ResponseEntity.ok("Payment Link Created: " + paymentLink);
     }
@@ -67,9 +66,14 @@ public class TicketController {
             @RequestParam String transactionId,
             @RequestParam String razorpaySignature
     ) {
-        // Verify payment status and update EntryTicket
-        entryTicketService.verifyAndSetPaymentStatus(transactionId, razorpaySignature);
-        return ResponseEntity.ok("Payment Verified Successfully");
+        try {
+            // Verify payment status and update EntryTicket
+            entryTicketService.verifyAndSetPaymentStatus(transactionId, razorpaySignature);
+            return ResponseEntity.ok("Payment Verified Successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Payment Verification Failed: " + e.getMessage());
+        }
     }
 
     /**
@@ -85,6 +89,7 @@ public class TicketController {
             @RequestParam UUID entryId
     ) {
         try {
+            // Generate and save QR code for the user and entry ticket
             qrCodeService.generateAndSaveQRCode(userId, entryId);
             return ResponseEntity.ok("QR Code Generated and Associated with User Profile");
         } catch (Exception e) {

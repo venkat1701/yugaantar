@@ -5,6 +5,7 @@ import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import io.github.venkat1701.yugaantar.dtos.registrations.RegistrationDTO;
 import io.github.venkat1701.yugaantar.exceptions.payments.PaymentFailedException;
+import io.github.venkat1701.yugaantar.models.entryTicket.EntryTicket;
 import io.github.venkat1701.yugaantar.models.events.Event;
 import io.github.venkat1701.yugaantar.models.payments.Payment;
 import io.github.venkat1701.yugaantar.models.payments.PaymentStatus;
@@ -18,9 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
-public class PaymentServiceImplementation implements PaymentGateway{
+public class PaymentServiceImplementation implements PaymentGateway {
     private final RazorpayClient razorpayClient;
     private final PaymentRepository paymentRepository;
 
@@ -50,9 +52,12 @@ public class PaymentServiceImplementation implements PaymentGateway{
     @Transactional
     public Payment createPayment(User user, Event event, int amount, String paymentMethod, String transactionId) {
         try {
+            // Create Razorpay invoice options
             JSONObject invoiceOptions = createInvoiceOptions(user, event, amount, transactionId);
+            // Create the invoice on Razorpay
             Invoice invoice = razorpayClient.invoices.create(invoiceOptions);
 
+            // Create and save the Payment entity
             return createAndSavePayment(user, event, amount, paymentMethod, invoice);
         } catch (RazorpayException e) {
             throw new RuntimeException("Invoice creation failed: " + e.getMessage(), e);
@@ -60,6 +65,7 @@ public class PaymentServiceImplementation implements PaymentGateway{
     }
 
     private JSONObject createInvoiceOptions(User user, Event event, int amount, String transactionId) {
+        // Prepare customer details for Razorpay
         JSONObject customer = new JSONObject()
                 .put("name", user.getUserProfile().getFirstName())
                 .put("email", user.getEmail())
@@ -67,7 +73,7 @@ public class PaymentServiceImplementation implements PaymentGateway{
 
         JSONObject lineItem = new JSONObject()
                 .put("name", event.getName())
-                .put("amount", amount * 100)  // Amount in paise
+                .put("amount", amount * 100)
                 .put("currency", "INR")
                 .put("quantity", 1);
 
@@ -84,7 +90,7 @@ public class PaymentServiceImplementation implements PaymentGateway{
                 .put("sms_notify", 1)
                 .put("email_notify", 1)
                 .put("currency", "INR")
-                .put("expire_by", System.currentTimeMillis()/1000 + 86400); // 24 hours
+                .put("expire_by", System.currentTimeMillis()/1000 + 86400);
     }
 
     private Payment createAndSavePayment(User user, Event event, int amount, String paymentMethod, Invoice invoice) {
@@ -130,8 +136,9 @@ public class PaymentServiceImplementation implements PaymentGateway{
     @Transactional(readOnly = true)
     public String getPaymentLink(String transactionId) {
         try {
+            // Fetch the Razorpay invoice and return the payment link
             Invoice invoice = razorpayClient.invoices.fetch(transactionId);
-            return invoice.get("short_url");
+            return invoice.get("short_url").toString();
         } catch (RazorpayException e) {
             throw new RuntimeException("Failed to fetch payment link: " + e.getMessage(), e);
         }
@@ -139,23 +146,56 @@ public class PaymentServiceImplementation implements PaymentGateway{
 
     @Override
     public String createPaymentLink(RegistrationDTO registrationDTO) {
-        // Here, implement the logic to create a payment link based on the registrationDTO details
-        // For example, you'd create a Razorpay invoice or payment link and return the link URL
+        try {
+            JSONObject invoiceOptions = createInvoiceOptionsFromDTO(registrationDTO);
 
-        // Example (mock implementation):
-        JSONObject paymentLink = new JSONObject();
-        paymentLink.put("short_url", "https://rzp.io/l/mockpaymentlink");  // Simulating payment link creation
-        return paymentLink.getString("short_url");
+            Invoice invoice = razorpayClient.invoices.create(invoiceOptions);
+
+            return invoice.get("short_url").toString();
+        } catch (RazorpayException e) {
+            throw new RuntimeException("Failed to create payment link: " + e.getMessage(), e);
+        }
+    }
+
+    private JSONObject createInvoiceOptionsFromDTO(RegistrationDTO registrationDTO) {
+        User user = new User();
+        user.setEmail(registrationDTO.getEmail());
+        Event event = new Event();
+        int amount = registrationDTO.getAmountPaid();
+
+        JSONObject customer = new JSONObject()
+                .put("name", user.getUserProfile().getFirstName())
+                .put("email", user.getEmail())
+                .put("contact", user.getUserProfile().getPhoneNumber());
+
+        JSONObject lineItem = new JSONObject()
+                .put("name", event.getName())
+                .put("amount", amount * 100)
+                .put("currency", "INR")
+                .put("quantity", 1);
+
+        JSONObject notes = new JSONObject()
+                .put("event_id", event.getId())
+                .put("registration_id", registrationDTO.getEventID());
+
+        return new JSONObject()
+                .put("type", "invoice")
+                .put("description", "Payment for " + event.getName())
+                .put("customer", customer)
+                .put("line_items", new JSONArray().put(lineItem))
+                .put("notes", notes)
+                .put("sms_notify", 1)
+                .put("email_notify", 1)
+                .put("currency", "INR")
+                .put("expire_by", System.currentTimeMillis() / 1000 + 86400);
     }
 
     @Override
     public PaymentStatus getPaymentStatus(String paymentId, String transactionId) {
         try {
-            // Make a call to Razorpay to fetch the payment status using paymentId or transactionId
             Invoice invoice = razorpayClient.invoices.fetch(transactionId);
             String status = invoice.get("status").toString();
 
-            // Return the payment status based on Razorpay response
             switch (status.toLowerCase()) {
                 case "paid":
                     return PaymentStatus.SUCCESS;
@@ -167,7 +207,7 @@ public class PaymentServiceImplementation implements PaymentGateway{
             }
         } catch (RazorpayException e) {
             e.printStackTrace();
-            return PaymentStatus.FAILURE;  // Or handle exceptions accordingly
+            return PaymentStatus.FAILURE;
         }
     }
 }
