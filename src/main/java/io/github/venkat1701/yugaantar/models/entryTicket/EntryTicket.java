@@ -14,6 +14,7 @@ public class EntryTicket {
     private UUID entryId;
 
     @ManyToOne
+    @JoinColumn(name = "user_id")
     private User user;
     private String transactionId;
     private PaymentStatus paymentStatus; // PENDING, PAID, LOGGED-IN
