@@ -10,7 +10,7 @@ import java.util.UUID;
 @Entity
 public class EntryTicket {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID entryId;
 
     @ManyToOne
