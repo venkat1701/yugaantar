@@ -9,4 +9,6 @@ public interface PaymentGateway {
     String createPaymentLink(RegistrationDTO registrationDTO);
 
     PaymentStatus getPaymentStatus(String paymentId, String transactionId);
+
+
 }
